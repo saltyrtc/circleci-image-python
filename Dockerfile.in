@@ -1,8 +1,14 @@
 FROM TAG
 
-# Install dependencies
+# Install libsodium
 RUN apt-get update -qqy \
  && apt-get install -qqy --no-install-recommends \
     libsodium18 \
  && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+
+# Install codecov
+RUN pip install --no-cache-dir codecov
+
+# Create user
+RUN useradd -ms /bin/bash saltyrtc
 
