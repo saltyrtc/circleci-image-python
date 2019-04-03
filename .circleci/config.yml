@@ -1,38 +1,67 @@
 version: 2
+
+shared: &shared
+  docker:
+    - image: docker:stable
+
+  steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Build ${TAG} Docker image
+        command: |
+          sed "s/^\(FROM \)TAG/\1${TAG//\-/:}/" Dockerfile.in | \
+          docker build \
+            --no-cache \
+            -t saltyrtc/circleci-image-python:${TAG} \
+            -
+    - deploy:
+        name: Push Docker image
+        command: |
+          docker login -u $DOCKER_USER -p $DOCKER_API_KEY && \
+          docker push saltyrtc/circleci-image-python:${TAG}
+
 jobs:
-  build:
-    docker:
-      - image: docker:stable
-    steps:
-      - checkout
-      - setup_remote_docker
-      - run:
-          name: Build Docker image
-          command: |
-            docker build \
-              --no-cache \
-              -t saltyrtc/circleci-image-python:latest \
-              -t saltyrtc/circleci-image-python:${CIRCLE_BRANCH} \
-              .
-      - deploy:
-          name: Push Docker image
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_API_KEY && \
-            docker push saltyrtc/circleci-image-python
+  build-python-3.7:
+    <<: *shared
+    environment:
+      - TAG: "python-3.7"
+      
+  build-python-3.6:
+    <<: *shared
+    environment:
+      - TAG: "python-3.6"
+      
+  build-python-3.5:
+    <<: *shared
+    environment:
+      - TAG: "python-3.5"
+
+  build-pypy-3.6:
+    <<: *shared
+    environment:
+      - TAG: "pypy-3.6"
+
+  build-pypy-3.5:
+    <<: *shared
+    environment:
+      - TAG: "pypy-3.5"
+
 workflows:
   version: 2
 
-  # Build on push to master
-  on_push:
-    jobs:
-      - build:
-          filters:
-            branches:
-              only:
-                - master
+  # Build on push
+  push:
+    jobs: &jobs
+      - build-python-3.7
+      - build-python-3.6
+      - build-python-3.5
+      - build-pypy-3.6
+      - build-pypy-3.5
 
   # Build every week on Monday at 04:00 am
   weekly:
+    jobs: *jobs
     triggers:
       - schedule:
           cron: "0 4 * * 1"
@@ -40,5 +69,4 @@ workflows:
             branches:
               only:
                 - master
-    jobs:
-      - build
+
