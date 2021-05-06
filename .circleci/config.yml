@@ -22,6 +22,11 @@ shared: &shared
           docker push saltyrtc/circleci-image-python:${TAG}
 
 jobs:
+  build-python-3.9:
+    <<: *shared
+    environment:
+      - TAG: "python-3.9"
+
   build-python-3.8:
     <<: *shared
     environment:
@@ -48,6 +53,7 @@ workflows:
   # Build on push
   push:
     jobs: &jobs
+      - build-python-3.9
       - build-python-3.8
       - build-python-3.7
       - build-python-3.6
