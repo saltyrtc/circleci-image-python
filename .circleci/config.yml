@@ -22,6 +22,11 @@ shared: &shared
           docker push saltyrtc/circleci-image-python:${TAG}
 
 jobs:
+  build-python-3.8:
+    <<: *shared
+    environment:
+      - TAG: "python-3.8"
+
   build-python-3.7:
     <<: *shared
     environment:
@@ -32,20 +37,10 @@ jobs:
     environment:
       - TAG: "python-3.6"
       
-  build-python-3.5:
-    <<: *shared
-    environment:
-      - TAG: "python-3.5"
-
   build-pypy-3.6:
     <<: *shared
     environment:
       - TAG: "pypy-3.6"
-
-  build-pypy-3.5:
-    <<: *shared
-    environment:
-      - TAG: "pypy-3.5"
 
 workflows:
   version: 2
@@ -53,11 +48,10 @@ workflows:
   # Build on push
   push:
     jobs: &jobs
+      - build-python-3.8
       - build-python-3.7
       - build-python-3.6
-      - build-python-3.5
       - build-pypy-3.6
-      - build-pypy-3.5
 
   # Build every week on Monday at 04:00 am
   weekly:
@@ -69,4 +63,3 @@ workflows:
             branches:
               only:
                 - master
-
